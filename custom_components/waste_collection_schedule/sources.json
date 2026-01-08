@@ -14173,11 +14173,9 @@
     },
     {
       "title": "Roslagsvatten",
-      "module": "edpevent_se",
-      "default_params": {
-        "service_provider": "roslagsvatten"
-      },
-      "id": "edpevent_se"
+      "module": "roslagsvatten_se",
+      "default_params": {},
+      "id": "roslagsvatten_se"
     },
     {
       "title": "Samverkan \u00c5tervinning Milj\u00f6 (S\u00c5M)",

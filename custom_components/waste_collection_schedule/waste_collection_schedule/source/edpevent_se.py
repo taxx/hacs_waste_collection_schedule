@@ -14,10 +14,6 @@ TITLE = "EDPEvent - Multi Source"
 DESCRIPTION = "Source for all EDPEvent waste collection sources. This included multiple municipalities in Sweden."
 URL = "https://www.edpevent.se"
 TEST_CASES = {
-    "https://edpmypage.roslagsvatten.se/FutureWebOS/SimpleWastePickup, Andromedavägen 1, Åkersberga": {
-        "street_address": "Andromedavägen 1",
-        "url": "https://edpmypage.roslagsvatten.se/FutureWebOS/SimpleWastePickup",
-    },
     "Boden - Bodens Kommun": {
         "street_address": "KYRKGATAN 24",
         "service_provider": "boden",
@@ -172,11 +168,6 @@ SERVICE_PROVIDERS = {
         "title": "Borås Energi och Miljö",
         "url": "https://www.borasem.se",
         "api_url": "https://kundportal.borasem.se/EDPFutureWeb/SimpleWastePickup",
-    },
-    "roslagsvatten": {
-        "title": "Roslagsvatten",
-        "url": "https://roslagsvatten.se",
-        "api_url": "https://edpmypage.roslagsvatten.se/FutureWebOS/SimpleWastePickup",
     },
     "kretslopp-sydost": {
         "title": "Kretslopp Sydost",
