@@ -19,7 +19,17 @@ TEST_CASES = {
         "street_address": "Hamngatan 1, Vaxholm",
         "municipality": "vaxholm",
     },
+    "Ekerö Test": {
+        "street_address": "Ekerö Kyrkväg 1, Ekerö",
+        "municipality": "ekero",
+    },
 }
+
+EXTRA_INFO = [
+    {"title": "Österåker", "default_params": {"municipality": "osteraker"}},
+    {"title": "Vaxholm", "default_params": {"municipality": "vaxholm"}},
+    {"title": "Ekerö", "default_params": {"municipality": "ekero"}},
+]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,27 +100,47 @@ class Source:
             return []
 
         html_schedule = fetch_results[0]["data"]
-
-        # 3. PARSE the HTML using Regex
-        # We look for: <h3>Waste Type</h3> and <p>Nästa hämtning: YYYY-MM-DD</p>
         entries = []
         
         # Regex to find all schedule blocks
-        # This matches the title in <h3> and the date inside the following <p> tag
-        pattern = re.compile(r"<h3>(.*?)</h3>[\s\S]*?Nästa hämtning: (\d{4}-\d{2}-\d{2})")
-        
+        # Group 1: Waste Type, Group 2: The date string (could be YYYY-MM-DD or vWW Mon YYYY)
+        pattern = re.compile(r"<h3>(.*?)</h3>[\s\S]*?Nästa hämtning: (.*?)</p>")
         matches = pattern.findall(html_schedule)
         
-        for waste_type, date_str in matches:
-            pickup_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            icon = ICON_MAP.get(waste_type, "mdi:trash-can")
-            
-            entries.append(
-                Collection(
-                    date=pickup_date,
-                    t=waste_type,
-                    icon=icon,
+        for waste_type, date_raw in matches:
+            date_raw = date_raw.strip()
+            pickup_date = None
+
+            # Pattern 1: Standard YYYY-MM-DD
+            if re.match(r"\d{4}-\d{2}-\d{2}", date_raw):
+                pickup_date = datetime.strptime(date_raw, "%Y-%m-%d").date()
+
+            # Pattern 2: Week format like "v41 Okt 2026"
+            elif "v" in date_raw:
+                try:
+                    # Extract week and year (e.g., '41' and '2026')
+                    week_match = re.search(r"v(\d+).*?(\d{4})", date_raw)
+                    if week_match:
+                        week = int(week_match.group(1))
+                        year = int(week_match.group(2))
+                        # ISO weeks start on Monday. 
+                        # This calculates the Monday of that week.
+                        pickup_date = datetime.strptime(f"{year}-W{week}-1", "%G-W%V-%u").date()
+                except Exception as e:
+                    _LOGGER.warning(f"Failed to parse week-based date {date_raw}: {e}")
+
+            if pickup_date:
+                icon = ICON_MAP.get(waste_type, "mdi:trash-can")
+                # Handle "Rest- matavfall" which appears in Ekerö
+                if "matavfall" in waste_type.lower() and "Rest" in waste_type:
+                    icon = "mdi:trash-can" # or a combined icon if preferred
+
+                entries.append(
+                    Collection(
+                        date=pickup_date,
+                        t=waste_type,
+                        icon=icon,
+                    )
                 )
-            )
 
         return entries
